@@ -31,7 +31,10 @@ class FrontEnd(object):
         self.joystick = pygame.joystick.Joystick(0)
         self.joystick.init()
 
+        self.left_right_axis = 0
+        self.for_back_axis = 0
         self.rotate_axis = 0
+        self.up_down_button = 0
 
         # Creat pygame window
         pygame.display.set_caption("Tello video stream")
@@ -76,9 +79,15 @@ class FrontEnd(object):
         should_stop = False
         while not should_stop:
 
+            self.left_right_axis = self.joystick.get_axis(0)
+            self.for_back_axis = self.joystick.get_axis(1)
             self.rotate_axis = self.joystick.get_axis(3)
+            self.up_down_button = self.joystick.get_hat(0)[1]
 
-            self.yaw_velocity = S * self.rotate_axis
+            self.left_right_velocity = int(S * self.left_right_axis)
+            self.for_back_velocity = -int(S * self.for_back_axis)
+            self.yaw_velocity = int(S * self.rotate_axis)
+            self.up_down_velocity = int(S * self.up_down_button)
 
             for event in pygame.event.get():
                 if event.type == USEREVENT + 1:
@@ -92,6 +101,10 @@ class FrontEnd(object):
                         self.keydown(event.key)
                 elif event.type == KEYUP:
                     self.keyup(event.key)
+                if event.type == pygame.JOYBUTTONDOWN:
+                    self.buttondown(event.button)
+                if event.type == pygame.JOYBUTTONUP:
+                    self.buttonup(event.button)
 
             if frame_read.stopped:
                 frame_read.stop()
@@ -109,6 +122,16 @@ class FrontEnd(object):
 
         # Call it always before finishing. I deallocate resources.
         self.tello.end()
+
+    def buttondown(self, button):
+        if button == 7:
+            self.tello.takeoff()
+            self.send_rc_control = True
+
+    def buttonup(self, button):
+        if button == 6:
+            self.tello.land()
+            self.send_rc_control = False
 
     def keydown(self, key):
         """ Update velocities based on key pressed
