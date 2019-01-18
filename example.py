@@ -25,6 +25,13 @@ class FrontEnd(object):
     def __init__(self):
         # Init pygame
         pygame.init()
+        pygame.joystick.init()
+
+        self.joystick_count = pygame.joystick.get_count()
+        self.joystick = pygame.joystick.Joystick(0)
+        self.joystick.init()
+
+        self.rotate_axis = 0
 
         # Creat pygame window
         pygame.display.set_caption("Tello video stream")
@@ -68,6 +75,10 @@ class FrontEnd(object):
 
         should_stop = False
         while not should_stop:
+
+            self.rotate_axis = self.joystick.get_axis(3)
+
+            self.yaw_velocity = S * self.rotate_axis
 
             for event in pygame.event.get():
                 if event.type == USEREVENT + 1:
