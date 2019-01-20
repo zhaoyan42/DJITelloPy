@@ -33,6 +33,7 @@ class FrontEnd(object):
 
         self.left_right_axis = 0
         self.for_back_axis = 0
+        self.speed_axis = 0
         self.yaw_axis = 0
         self.up_down_button = 0
 
@@ -81,9 +82,11 @@ class FrontEnd(object):
 
             self.left_right_axis = self.joystick.get_axis(0)
             self.for_back_axis = self.joystick.get_axis(1)
+            self.speed_axis = self.joystick.get_axis(2)
             self.yaw_axis = self.joystick.get_axis(3)
             self.up_down_button = self.joystick.get_hat(0)[1]
 
+            S = (-self.speed_axis + 1) / 2 * 100
             self.left_right_velocity = int(S * self.left_right_axis)
             self.for_back_velocity = -int(S * self.for_back_axis)
             self.yaw_velocity = int(S * self.yaw_axis)
