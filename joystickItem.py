@@ -12,6 +12,10 @@ class JoystickItem(object):
     def value(self):
         if self.type == JoystickItemType.axis:
             return self.joystick.get_axis(self.index1)
+        elif self.type == JoystickItemType.button:
+            return self.joystick.get_button(self.index1)
+        elif self.type == JoystickItemType.hat:
+            return self.joystick.get_hat(self.index1)[self.index2]
 
 
 class JoystickItemType(Enum):

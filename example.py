@@ -32,14 +32,31 @@ class FrontEnd(object):
         if self.joystick_count > 0:
             self.joystick = pygame.joystick.Joystick(0)
             self.joystick.init()
+
             self.left_right_item = JoystickItem(
                 self.joystick, JoystickItemType.axis, 0)
             self.for_back_item = JoystickItem(
                 self.joystick, JoystickItemType.axis, 1)
-            self.speed_item = JoystickItem(
-                self.joystick, JoystickItemType.axis, 2)
             self.yaw_item = JoystickItem(
                 self.joystick, JoystickItemType.axis, 3)
+
+            self.speed_item = JoystickItem(
+                self.joystick, JoystickItemType.axis, 2)
+
+            self.up_down_item_type = JoystickItemType.button
+            self.up_item = JoystickItem(
+                self.joystick, JoystickItemType.button, 4)
+            self.down_item = JoystickItem(
+                self.joystick, JoystickItemType.button, 2)
+
+            # self.up_down_item_type = JoystickItemType.hat
+            # self.up_down_item = JoystickItem(
+            #     self.joystick, JoystickItemType.hat, 0, 1)
+
+            self.takeoff_item = JoystickItem(
+                self.joystick, JoystickItemType.button, 11)
+            self.land_item = JoystickItem(
+                self.joystick, JoystickItemType.button, 10)
 
         # Creat pygame window
         pygame.display.set_caption("Tello video stream")
@@ -91,7 +108,10 @@ class FrontEnd(object):
                 self.left_right_velocity = int(S * self.left_right_item.value())
                 self.for_back_velocity = -int(S * self.for_back_item.value())
                 self.yaw_velocity = int(S * self.yaw_item.value())
-                self.up_down_velocity = int(S * self.joystick.get_hat(0)[1])
+                if self.up_down_item_type == JoystickItemType.button:
+                    self.up_down_velocity = int(S * (self.up_item.value() - self.down_item.value()))
+                elif self.up_down_item_type == JoystickItemType.hat:
+                    self.up_down_velocity = int(S * self.up_down_item.value())
 
             for event in pygame.event.get():
                 if event.type == USEREVENT + 1:
@@ -128,12 +148,12 @@ class FrontEnd(object):
         self.tello.end()
 
     def buttondown(self, button):
-        if button == 7:
+        if button == self.takeoff_item.index1:
             self.tello.takeoff()
             self.send_rc_control = True
 
     def buttonup(self, button):
-        if button == 6:
+        if button == self.land_item.index1:
             self.tello.land()
             self.send_rc_control = False
 
