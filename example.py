@@ -1,4 +1,5 @@
 from djitellopy import Tello
+from joystickItem import JoystickItem, JoystickItemType
 import cv2
 import pygame
 from pygame.locals import *
@@ -31,12 +32,14 @@ class FrontEnd(object):
         if self.joystick_count > 0:
             self.joystick = pygame.joystick.Joystick(0)
             self.joystick.init()
-
-        self.left_right_axis = 0
-        self.for_back_axis = 0
-        self.speed_axis = 0
-        self.yaw_axis = 0
-        self.up_down_button = 0
+            self.left_right_item = JoystickItem(
+                self.joystick, JoystickItemType.axis, 0)
+            self.for_back_item = JoystickItem(
+                self.joystick, JoystickItemType.axis, 1)
+            self.speed_item = JoystickItem(
+                self.joystick, JoystickItemType.axis, 2)
+            self.yaw_item = JoystickItem(
+                self.joystick, JoystickItemType.axis, 3)
 
         # Creat pygame window
         pygame.display.set_caption("Tello video stream")
@@ -83,17 +86,12 @@ class FrontEnd(object):
         while not should_stop:
 
             if self.joystick_count > 0:
-                self.left_right_axis = self.joystick.get_axis(0)
-                self.for_back_axis = self.joystick.get_axis(1)
-                self.speed_axis = self.joystick.get_axis(2)
-                self.yaw_axis = self.joystick.get_axis(3)
-                self.up_down_button = self.joystick.get_hat(0)[1]
 
-                S = (-self.speed_axis + 1) / 2 * 100
-                self.left_right_velocity = int(S * self.left_right_axis)
-                self.for_back_velocity = -int(S * self.for_back_axis)
-                self.yaw_velocity = int(S * self.yaw_axis)
-                self.up_down_velocity = int(S * self.up_down_button)
+                S = (-self.speed_item.value() + 1) / 2 * 100
+                self.left_right_velocity = int(S * self.left_right_item.value())
+                self.for_back_velocity = -int(S * self.for_back_item.value())
+                self.yaw_velocity = int(S * self.yaw_item.value())
+                self.up_down_velocity = int(S * self.joystick.get_hat(0)[1])
 
             for event in pygame.event.get():
                 if event.type == USEREVENT + 1:
