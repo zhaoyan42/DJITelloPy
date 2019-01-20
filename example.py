@@ -28,8 +28,9 @@ class FrontEnd(object):
         pygame.joystick.init()
 
         self.joystick_count = pygame.joystick.get_count()
-        self.joystick = pygame.joystick.Joystick(0)
-        self.joystick.init()
+        if self.joystick_count > 0:
+            self.joystick = pygame.joystick.Joystick(0)
+            self.joystick.init()
 
         self.left_right_axis = 0
         self.for_back_axis = 0
@@ -66,7 +67,8 @@ class FrontEnd(object):
             print("Not set speed to lowest possible")
             return
 
-        # In case streaming is on. This happens when we quit this program without the escape key.
+        # In case streaming is on. This happens when we quit this program
+        # without the escape key.
         if not self.tello.streamoff():
             print("Could not stop video stream")
             return
@@ -80,17 +82,18 @@ class FrontEnd(object):
         should_stop = False
         while not should_stop:
 
-            self.left_right_axis = self.joystick.get_axis(0)
-            self.for_back_axis = self.joystick.get_axis(1)
-            self.speed_axis = self.joystick.get_axis(2)
-            self.yaw_axis = self.joystick.get_axis(3)
-            self.up_down_button = self.joystick.get_hat(0)[1]
+            if self.joystick_count > 0:
+                self.left_right_axis = self.joystick.get_axis(0)
+                self.for_back_axis = self.joystick.get_axis(1)
+                self.speed_axis = self.joystick.get_axis(2)
+                self.yaw_axis = self.joystick.get_axis(3)
+                self.up_down_button = self.joystick.get_hat(0)[1]
 
-            S = (-self.speed_axis + 1) / 2 * 100
-            self.left_right_velocity = int(S * self.left_right_axis)
-            self.for_back_velocity = -int(S * self.for_back_axis)
-            self.yaw_velocity = int(S * self.yaw_axis)
-            self.up_down_velocity = int(S * self.up_down_button)
+                S = (-self.speed_axis + 1) / 2 * 100
+                self.left_right_velocity = int(S * self.left_right_axis)
+                self.for_back_velocity = -int(S * self.for_back_axis)
+                self.yaw_velocity = int(S * self.yaw_axis)
+                self.up_down_velocity = int(S * self.up_down_button)
 
             for event in pygame.event.get():
                 if event.type == USEREVENT + 1:
