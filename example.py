@@ -37,11 +37,13 @@ class FrontEnd(object):
                 self.joystick, JoystickItemType.axis, 0)
             self.for_back_item = JoystickItem(
                 self.joystick, JoystickItemType.axis, 1)
+            self.for_back_item.inverse_value = True
             self.yaw_item = JoystickItem(
                 self.joystick, JoystickItemType.axis, 3)
 
             self.speed_item = JoystickItem(
                 self.joystick, JoystickItemType.axis, 2)
+            self.speed_item.inverse_value = True
 
             self.up_down_item_type = JoystickItemType.button
             self.up_item = JoystickItem(
@@ -53,8 +55,10 @@ class FrontEnd(object):
                 self.joystick, JoystickItemType.hat, 0, 1)
             self.flip_b_item = JoystickItem(
                 self.joystick, JoystickItemType.hat, 0, 1)
+            self.flip_b_item.inverse_value = True
             self.flip_l_item = JoystickItem(
                 self.joystick, JoystickItemType.hat, 0, 0)
+            self.flip_l_item.inverse_value = True
             self.flip_r_item = JoystickItem(
                 self.joystick, JoystickItemType.hat, 0, 0)
 
@@ -113,16 +117,7 @@ class FrontEnd(object):
         should_stop = False
         while not should_stop:
 
-            if self.joystick_count > 0:
-
-                S = (-self.speed_item.value() + 1) / 2 * 100
-                self.left_right_velocity = int(S * self.left_right_item.value())
-                self.for_back_velocity = -int(S * self.for_back_item.value())
-                self.yaw_velocity = int(S * self.yaw_item.value())
-                if self.up_down_item_type == JoystickItemType.button:
-                    self.up_down_velocity = int(S * (self.up_item.value() - self.down_item.value()))
-                elif self.up_down_item_type == JoystickItemType.hat:
-                    self.up_down_velocity = int(S * self.up_down_item.value())
+            self.set_value_by_joystick()
 
             for event in pygame.event.get():
                 if event.type == USEREVENT + 1:
@@ -160,6 +155,19 @@ class FrontEnd(object):
         # Call it always before finishing. I deallocate resources.
         self.tello.end()
 
+    def set_value_by_joystick(self):
+        if self.joystick_count > 0:
+            speed = (self.speed_item.value() + 1) / 2 * 100
+            self.left_right_velocity = int(
+                speed * self.left_right_item.value())
+            self.for_back_velocity = int(speed * self.for_back_item.value())
+            self.yaw_velocity = int(speed * self.yaw_item.value())
+            if self.up_down_item_type == JoystickItemType.button:
+                self.up_down_velocity = int(
+                    speed * (self.up_item.value() - self.down_item.value()))
+            elif self.up_down_item_type == JoystickItemType.hat:
+                self.up_down_velocity = int(speed * self.up_down_item.value())
+
     def buttondown(self, button):
         if button == self.takeoff_item.index1:
             self.tello.takeoff()
@@ -174,14 +182,18 @@ class FrontEnd(object):
             self.send_rc_control = False
 
     def hatmotion(self, hat, value):
-        if hat == self.flip_f_item.index1 and value[self.flip_f_item.index2] > 0:
+        if self.hat_item_motioned(hat, value, self.flip_f_item):
             self.tello.flip_forward()
-        elif hat == self.flip_b_item.index1 and -value[self.flip_b_item.index2] > 0:
+        elif self.hat_item_motioned(hat, value, self.flip_b_item):
             self.tello.flip_back()
-        elif hat == self.flip_r_item.index1 and value[self.flip_r_item.index2] > 0:
+        elif self.hat_item_motioned(hat, value, self.flip_r_item):
             self.tello.flip_right()
-        elif hat == self.flip_l_item.index1 and -value[self.flip_l_item.index2] > 0:
+        elif self.hat_item_motioned(hat, value, self.flip_l_item):
             self.tello.flip_left()
+
+    def hat_item_motioned(self, hat, value, hat_item):
+        return hat == hat_item.index1 and value[hat_item.index2] * \
+            (-1 if hat_item.inverse_value else 1) > 0
 
     def keydown(self, key):
         """ Update velocities based on key pressed
