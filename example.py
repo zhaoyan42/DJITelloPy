@@ -57,6 +57,8 @@ class FrontEnd(object):
                 self.joystick, JoystickItemType.button, 11)
             self.land_item = JoystickItem(
                 self.joystick, JoystickItemType.button, 10)
+            self.emergency_item = JoystickItem(
+                self.joystick, JoystickItemType.button, 3)
 
         # Creat pygame window
         pygame.display.set_caption("Tello video stream")
@@ -151,6 +153,9 @@ class FrontEnd(object):
         if button == self.takeoff_item.index1:
             self.tello.takeoff()
             self.send_rc_control = True
+        elif button == self.emergency_item.index1:
+            self.tello.emergency()
+            self.send_rc_control = False
 
     def buttonup(self, button):
         if button == self.land_item.index1:
