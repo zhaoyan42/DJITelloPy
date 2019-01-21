@@ -49,6 +49,15 @@ class FrontEnd(object):
             self.down_item = JoystickItem(
                 self.joystick, JoystickItemType.button, 2)
 
+            self.flip_f_item = JoystickItem(
+                self.joystick, JoystickItemType.hat, 0, 1)
+            self.flip_b_item = JoystickItem(
+                self.joystick, JoystickItemType.hat, 0, 1)
+            self.flip_l_item = JoystickItem(
+                self.joystick, JoystickItemType.hat, 0, 0)
+            self.flip_r_item = JoystickItem(
+                self.joystick, JoystickItemType.hat, 0, 0)
+
             # self.up_down_item_type = JoystickItemType.hat
             # self.up_down_item = JoystickItem(
             #     self.joystick, JoystickItemType.hat, 0, 1)
@@ -127,10 +136,12 @@ class FrontEnd(object):
                         self.keydown(event.key)
                 elif event.type == KEYUP:
                     self.keyup(event.key)
-                if event.type == pygame.JOYBUTTONDOWN:
+                elif event.type == pygame.JOYBUTTONDOWN:
                     self.buttondown(event.button)
-                if event.type == pygame.JOYBUTTONUP:
+                elif event.type == pygame.JOYBUTTONUP:
                     self.buttonup(event.button)
+                if event.type == pygame.JOYHATMOTION:
+                    self.hatmotion(event.hat, event.value)
 
             if frame_read.stopped:
                 frame_read.stop()
@@ -161,6 +172,16 @@ class FrontEnd(object):
         if button == self.land_item.index1:
             self.tello.land()
             self.send_rc_control = False
+
+    def hatmotion(self, hat, value):
+        if hat == self.flip_f_item.index1 and value[self.flip_f_item.index2] > 0:
+            self.tello.flip_forward()
+        elif hat == self.flip_b_item.index1 and -value[self.flip_b_item.index2] > 0:
+            self.tello.flip_back()
+        elif hat == self.flip_r_item.index1 and value[self.flip_r_item.index2] > 0:
+            self.tello.flip_right()
+        elif hat == self.flip_l_item.index1 and -value[self.flip_l_item.index2] > 0:
+            self.tello.flip_left()
 
     def keydown(self, key):
         """ Update velocities based on key pressed
