@@ -1,5 +1,6 @@
 from djitellopy import Tello
 from joystickItem import JoystickItem, JoystickItemType
+from textPrint import TextPrint
 import cv2
 import pygame
 from pygame.locals import *
@@ -11,6 +12,7 @@ S = 60
 # Frames per second of the pygame window display
 FPS = 25
 
+GET_STATE_PER_FRAME = 75
 
 class FrontEnd(object):
     """ Maintains the Tello display and moves it through the keyboard keys.
@@ -77,6 +79,8 @@ class FrontEnd(object):
         pygame.display.set_caption("Tello video stream")
         self.screen = pygame.display.set_mode([960, 720])
 
+        self.textPrint = TextPrint(self.screen)
+
         # Init Tello object that interacts with the Tello drone
         self.tello = Tello()
 
@@ -88,6 +92,8 @@ class FrontEnd(object):
         self.speed = 10
 
         self.send_rc_control = False
+
+        self.state_frame_count = 0
 
         # create update timer
         pygame.time.set_timer(USEREVENT + 1, 50)
@@ -149,6 +155,8 @@ class FrontEnd(object):
             frame = pygame.surfarray.make_surface(frame)
             self.screen.blit(frame, (0, 0))
             pygame.display.update()
+
+            self.draw_state()
 
             time.sleep(1 / FPS)
 
@@ -239,9 +247,15 @@ class FrontEnd(object):
 
     def update(self):
         """ Update routine. Send velocities to Tello."""
-        if self.send_rc_control:
-            self.tello.send_rc_control(self.left_right_velocity, self.for_back_velocity, self.up_down_velocity,
-                                       self.yaw_velocity)
+        self.tello.send_rc_control(self.left_right_velocity, self.for_back_velocity, self.up_down_velocity,
+                                   self.yaw_velocity)
+
+    def draw_state(self):
+        if self.state_frame_count > GET_STATE_PER_FRAME:
+            pygame.display.set_caption("电量 {}%".format(self.tello.get_battery()))
+            self.state_frame_count = 0
+        else:
+            self.state_frame_count = self.state_frame_count + 1
 
 
 def main():
